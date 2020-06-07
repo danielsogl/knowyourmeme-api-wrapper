@@ -49,6 +49,7 @@ app.use(compression());
 
 // Routes
 app.get('/', apiController.getInfo);
+app.get('/search', apiController.getSearch);
 
 // Export express app
 export default app;
