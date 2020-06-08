@@ -50,6 +50,7 @@ app.use(compression());
 // Routes
 app.get('/', apiController.getInfo);
 app.get('/search', apiController.getSearch);
+app.get('/memes/*', apiController.getMemeDetails);
 
 // Export express app
 export default app;
