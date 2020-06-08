@@ -2,7 +2,7 @@ version: "3"
 
 services:
     server:
-        image: knowyourmeme-api
+        image: knowyourmeme-api-wrapper
         restart: always
         ports:
             - "8080:8080"
