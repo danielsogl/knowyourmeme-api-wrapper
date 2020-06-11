@@ -40,15 +40,7 @@ export let getMemeDetails = (req: Request, res: Response) => {
       const $ = load(response.data);
 
       const name = $('.info h1 a')[0].children[0].data;
-      const images = $('img');
-      const image = getMemeImage(images, name);
-
-      for (let i = 0; i < images.length; i++) {
-        const image = images[i];
-        if (image.attribs['alt'] === name) {
-          console.log(image.parent.attribs['href']);
-        }
-      }
+      const image = $(`img[alt="${name}"]`).parent().attr('href');
 
       const about = $('.bodycopy');
       const children = about.children();
@@ -90,15 +82,4 @@ const childrenToText = (children: any) => {
   }
 
   return text;
-};
-
-const getMemeImage = (images: Cheerio, name: string): string => {
-  for (let i = 0; i < images.length; i++) {
-    const image = images[i];
-    if (image.attribs['alt'] === name) {
-      return image.parent.attribs['href'];
-    }
-  }
-
-  return undefined;
 };
