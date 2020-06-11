@@ -1,9 +1,9 @@
 import axios from 'axios';
+import { load } from 'cheerio';
 import { Request, Response } from 'express';
-import { JSDOM } from 'jsdom';
 import pjson from 'pjson';
-import sanitize from 'sanitize-html';
 
+import { MemeDetails } from '../models/meme.model';
 import { API_ENDPOINT } from '../util/settings';
 
 export let getInfo = (_req: Request, res: Response) => {
@@ -34,28 +34,71 @@ export let getSearch = (req: Request, res: Response) => {
 
 export let getMemeDetails = (req: Request, res: Response) => {
   const url = `${API_ENDPOINT}${req.url}`;
-
   axios
     .get(url)
     .then((response) => {
-      // extract body
-      const bodyHtml = /<body.*?>([\s\S]*)<\/body>/.exec(response.data)[1];
+      const $ = load(response.data);
 
-      // create virutal dom
-      const doc = new JSDOM(bodyHtml);
-      // get meme content
-      const contentSection = doc.window.document.getElementsByClassName(
-        'bodycopy'
-      )[0];
+      const name = $('.info h1 a')[0].children[0].data;
+      const images = $('img');
+      const image = getMemeImage(images, name);
 
-      // sanitize html
-      const bodyWithoutScripts = sanitize(contentSection.innerHTML);
+      for (let i = 0; i < images.length; i++) {
+        const image = images[i];
+        if (image.attribs['alt'] === name) {
+          console.log(image.parent.attribs['href']);
+        }
+      }
 
-      res.status(response.status);
-      res.send(bodyWithoutScripts);
+      const about = $('.bodycopy');
+      const children = about.children();
+
+      for (let i = 0; i < children.length; i++) {
+        const child = children[i];
+
+        if (child.attribs.id === 'about') {
+          res.status(response.status);
+          res.json({
+            name,
+            image,
+            about: childrenToText(children[i + 1].children),
+          } as MemeDetails);
+        }
+      }
     })
     .catch((_err) => {
       res.status(501);
       res.send('Internal Server Error');
     });
+};
+
+const childrenToText = (children: any) => {
+  let text = '';
+
+  for (let i = 0; i < children.length; i++) {
+    const child = children[i];
+
+    if (child.type === 'text') {
+      if (!/^\s*\[\d+]\s*$/.test(child.data)) {
+        text += child.data;
+      }
+
+      continue;
+    }
+
+    text += childrenToText(child.children);
+  }
+
+  return text;
+};
+
+const getMemeImage = (images: Cheerio, name: string): string => {
+  for (let i = 0; i < images.length; i++) {
+    const image = images[i];
+    if (image.attribs['alt'] === name) {
+      return image.parent.attribs['href'];
+    }
+  }
+
+  return undefined;
 };
