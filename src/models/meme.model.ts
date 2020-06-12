@@ -29,6 +29,7 @@ export class Meme {
   }
 
   private childrenToText(children: any) {
+  private childrenToText(children: CheerioElement[]) {
     let text = '';
 
     for (let i = 0; i < children.length; i++) {
