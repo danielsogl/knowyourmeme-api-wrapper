@@ -41,6 +41,7 @@ export let getMemeDetails = (req: Request, res: Response) => {
         name: meme.name,
         about: meme.about,
         image: meme.image,
+        history: meme.history,
       };
       res.status(response.status);
       res.json(result);

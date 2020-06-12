@@ -28,7 +28,19 @@ export class Meme {
     }
   }
 
-  private childrenToText(children: any) {
+  get history(): string {
+    const about = this.$('.bodycopy');
+    const children = about.children();
+
+    for (let i = 0; i < children.length; i++) {
+      const child = children[i];
+
+      if (child.attribs.id === 'online-history') {
+        return this.childrenToText(children[i + 1].children);
+      }
+    }
+  }
+
   private childrenToText(children: CheerioElement[]) {
     let text = '';
 
