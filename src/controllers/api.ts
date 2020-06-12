@@ -1,9 +1,8 @@
 import axios from 'axios';
-import { load } from 'cheerio';
 import { Request, Response } from 'express';
 import pjson from 'pjson';
 
-import { MemeDetails } from '../models/meme.model';
+import { Meme } from '../models/meme.model';
 import { API_ENDPOINT } from '../util/settings';
 
 export let getInfo = (_req: Request, res: Response) => {
@@ -37,49 +36,17 @@ export let getMemeDetails = (req: Request, res: Response) => {
   axios
     .get(url)
     .then((response) => {
-      const $ = load(response.data);
-
-      const name = $('.info h1 a')[0].children[0].data;
-      const image = $(`img[alt="${name}"]`).parent().attr('href');
-
-      const about = $('.bodycopy');
-      const children = about.children();
-
-      for (let i = 0; i < children.length; i++) {
-        const child = children[i];
-
-        if (child.attribs.id === 'about') {
-          res.status(response.status);
-          res.json({
-            name,
-            image,
-            about: childrenToText(children[i + 1].children),
-          } as MemeDetails);
-        }
-      }
+      const meme = new Meme(response.data);
+      const result = {
+        name: meme.name,
+        about: meme.about,
+        image: meme.image,
+      };
+      res.status(response.status);
+      res.json(result);
     })
     .catch((_err) => {
       res.status(501);
       res.send('Internal Server Error');
     });
-};
-
-const childrenToText = (children: any) => {
-  let text = '';
-
-  for (let i = 0; i < children.length; i++) {
-    const child = children[i];
-
-    if (child.type === 'text') {
-      if (!/^\s*\[\d+]\s*$/.test(child.data)) {
-        text += child.data;
-      }
-
-      continue;
-    }
-
-    text += childrenToText(child.children);
-  }
-
-  return text;
 };
